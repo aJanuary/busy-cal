@@ -2,6 +2,7 @@ import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fetchGoogleCalendarEvents } from './google-calendar.js';
+import { fetchIcsCalendarEvents } from './ics-calendar.js';
 import { calculateAvailability } from './availability.js';
 import { generateHtml } from './generate-html.js';
 import type { CalendarEvent } from './types.js';
@@ -41,6 +42,26 @@ async function main(): Promise<void> {
     }
   } else {
     console.log('Skipping Google Calendar (missing credentials or calendar IDs)');
+  }
+
+  // Fetch events from generic ICS feed URLs (e.g. Outlook/M365 published calendars)
+  const icsUrl1 = process.env.ICS_URL_1;
+  const icsUrl2 = process.env.ICS_URL_2;
+  const icsUrls = [icsUrl1, icsUrl2].filter(Boolean) as string[];
+
+  if (icsUrls.length > 0) {
+    console.log(`Fetching events from ${icsUrls.length} ICS feed(s)...`);
+
+    try {
+      const icsEvents = await fetchIcsCalendarEvents(icsUrls, timeMin, timeMax);
+      console.log(icsEvents);
+      console.log(`Found ${icsEvents.length} ICS events`);
+      allEvents.push(...icsEvents);
+    } catch (error) {
+      console.error('Failed to fetch ICS events:', error);
+    }
+  } else {
+    console.log('Skipping ICS feeds (no ICS URL configured)');
   }
 
   console.log(`Total events: ${allEvents.length}`);

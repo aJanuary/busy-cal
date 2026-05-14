@@ -1,7 +1,7 @@
 {
   "name": "busy-cal",
   "version": "1.0.0",
-  "description": "Static availability page combining Google and Microsoft calendars",
+  "description": "Static availability page combining Google Calendar and ICS feeds",
   "type": "module",
   "scripts": {
     "build": "tsc",
@@ -20,6 +20,7 @@
   "dependencies": {
     "@types/node": "^25.0.6",
     "googleapis": "^170.0.0",
+    "node-ical": "^0.26.1",
     "typescript": "^5.9.3"
   },
   "devDependencies": {

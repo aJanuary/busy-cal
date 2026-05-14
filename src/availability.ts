@@ -85,12 +85,15 @@ function getBaseSlots(dayStart: Date): TimeSlot[] {
         status: "potentially-available",
       });
     }
+    const isThursday = dayStart.getDay() === 4;
+
     // Available in the evening
     // 6pm-9pm: available (calendar events can override)
+    // Thursday evenings are only potentially available
     slots.push({
       start: new Date(year, month, day, 18, 0),
       end: new Date(year, month, day, 21, 0),
-      status: "available",
+      status: isThursday ? "potentially-available" : "available",
     });
   }
 
