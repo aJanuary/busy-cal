@@ -134,10 +134,6 @@ export function generateHtml(summaries: DaySummary[]): string {
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
-    .day.weekend {
-      background: #f1f5f9;
-    }
-
     .day h3 {
       font-size: 1rem;
       font-weight: 600;
@@ -155,16 +151,11 @@ export function generateHtml(summaries: DaySummary[]): string {
 
     .summary-segment {
       height: 100%;
-      cursor: pointer;
       box-sizing: border-box;
     }
 
     .summary-segment.highlighted {
       box-shadow: inset 0 0 0 2px #1d4ed8;
-    }
-
-    .slot {
-      cursor: pointer;
     }
 
     .slot.highlighted {
@@ -348,12 +339,6 @@ export function generateHtml(summaries: DaySummary[]): string {
         return date.toLocaleDateString('en-GB', { timeZone: timezone, weekday: 'short' });
       }
 
-      function isWeekend(dateKey) {
-        const date = new Date(dateKey + 'T12:00:00');
-        const day = date.getDay();
-        return day === 0 || day === 6;
-      }
-
       function formatTime(isoString, timezone, hour12) {
         const date = new Date(isoString);
         return date.toLocaleTimeString('en-GB', {
@@ -517,10 +502,8 @@ export function generateHtml(summaries: DaySummary[]): string {
           if (mergedSlots.length === 0) {
             continue;
           }
-          const weekend = isWeekend(day.dateKey);
-
           const dayEl = document.createElement('div');
-          dayEl.className = weekend ? 'day weekend' : 'day';
+          dayEl.className = 'day';
 
           const header = document.createElement('h3');
           header.textContent = formatDate(day.dateKey, timezone);
