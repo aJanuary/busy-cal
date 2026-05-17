@@ -29,7 +29,7 @@ export function generateHtml(summaries: DaySummary[]): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Availability</title>
+  <title>Andrew's availability</title>
   <style>
     * {
       box-sizing: border-box;
@@ -180,15 +180,33 @@ export function generateHtml(summaries: DaySummary[]): string {
     .slot {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       padding: 0.5rem 0.75rem;
       border-radius: 0.25rem;
       font-size: 0.875rem;
     }
 
+    .london-tz-msg {
+      font-size: 0.875rem;
+      color: #475569;
+      margin-bottom: 0.25rem;
+    }
+
     .time {
       font-family: ui-monospace, monospace;
       color: #475569;
+    }
+
+    .time-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+    }
+
+    .london-time {
+      font-family: ui-monospace, monospace;
+      color: rgba(100, 116, 139, 0.75);
+      font-size: 0.8rem;
     }
 
     .status {
@@ -216,7 +234,8 @@ export function generateHtml(summaries: DaySummary[]): string {
 <body>
   <div class="container">
     <header>
-      <h1>Availability</h1>
+      <h1>Andrew's availability</h1>
+      <p class="london-tz-msg">Andrew's timezone is <span id="london-tz"></span></p>
       <p class="updated">Last updated: <span id="last-updated"></span></p>
       <div class="settings">
         <div class="setting">
@@ -261,6 +280,14 @@ export function generateHtml(summaries: DaySummary[]): string {
         { group: 'Asia/Pacific', zones: ['Asia/Tokyo', 'Asia/Shanghai', 'Asia/Hong_Kong', 'Asia/Singapore', 'Asia/Seoul', 'Asia/Dubai', 'Asia/Kolkata', 'Australia/Sydney', 'Australia/Melbourne', 'Pacific/Auckland'] },
         { group: 'Other', zones: ['UTC'] }
       ];
+
+      function getLondonTzAbbr(date) {
+        const parts = new Intl.DateTimeFormat('en-GB', {
+          timeZone: 'Europe/London',
+          timeZoneName: 'short'
+        }).formatToParts(date);
+        return (parts.find(function(p) { return p.type === 'timeZoneName'; }) || {}).value || 'GMT';
+      }
 
       function detectHour12Preference() {
         try {
@@ -472,6 +499,10 @@ export function generateHtml(summaries: DaySummary[]): string {
       }
 
       function render(timezone, hour12) {
+        // Update London timezone message
+        const londonAbbr = getLondonTzAbbr(new Date());
+        document.getElementById('london-tz').textContent = londonAbbr === 'BST' ? 'BST (UTC+1)' : 'GMT (UTC+0)';
+
         // Update last updated
         document.getElementById('last-updated').textContent = formatDateTime(LAST_UPDATED_ISO, timezone, hour12);
 
@@ -564,10 +595,25 @@ export function generateHtml(summaries: DaySummary[]): string {
             slotEl.style.borderLeft = '4px solid ' + color;
             slotEl.dataset.slotIndex = index;
 
+            const timeInfoEl = document.createElement('div');
+            timeInfoEl.className = 'time-info';
+
             const timeEl = document.createElement('span');
             timeEl.className = 'time';
             timeEl.textContent = slot.startTimeStr + ' - ' + slot.endTimeStr;
-            slotEl.appendChild(timeEl);
+            timeInfoEl.appendChild(timeEl);
+
+            if (timezone !== 'Europe/London') {
+              const londonStartStr = formatTime(slot.start, 'Europe/London', hour12);
+              const londonEndStr = formatTime(slot.end, 'Europe/London', hour12);
+              const slotLondonAbbr = getLondonTzAbbr(new Date(slot.start));
+              const londonTimeEl = document.createElement('span');
+              londonTimeEl.className = 'london-time';
+              londonTimeEl.textContent = londonStartStr + ' - ' + londonEndStr + ' ' + slotLondonAbbr;
+              timeInfoEl.appendChild(londonTimeEl);
+            }
+
+            slotEl.appendChild(timeInfoEl);
 
             const statusEl = document.createElement('span');
             statusEl.className = 'status';
